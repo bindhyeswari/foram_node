@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        body {
+            padding: 3em;
+            font: 200 1em 'Helvetica Neue';
+        }
+        button {
+            font: 200 1em 'HELVETICA NEUE';
+            cursor: pointer;
+        }
+        input {
+            font: 200 1em 'HELVETICA NEUE';
+            margin: 0.1em 1em;
+        }
+        input[type="text"] {
+            outline: none;
+            border: 1px solid #aaa;
+            padding: 0.25em 0.5em;
+            display: block;
+            margin: 1em;
+            width: 20em;
+        }
+        div {
+            margin: 0.25em;
+        }
+        div.container {
+            background-color: #eee;
+            padding: 0.25em 0.5em;
+            margin: 1em;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            document.getElementById('btn_candidates').addEventListener('click', function () {
+                getCandidateData();
+            });
+
+            // create candidate - handle form
+            document.forms.create_candidate.addEventListener('submit', function(event){
+                event.preventDefault();
+                var jsonData = {
+                    name: this.name.value,
+                    email: this.email.value,
+                    city: this.city.value
+                };
+                createCandidate(jsonData);
+            });
+
+
+            function getCandidateData(){
+                // Function to get candidate data and display it
+                var results  = document.getElementById('candidates');
+                results.innerHTML = '';
+                makeAjaxCall('/candidates', function(obj){
+                    console.log(obj);
+                    for (var i = 0, len = obj.length; i < len; i++) {
+                        var candidate = document.createElement('div');
+                        candidate.innerHTML = obj[i].name + ', ' + obj[i].email + ', ' + obj[i].city;
+                        results.appendChild(candidate);
+                    }
+                });
+            }
+
+            function createCandidate(candidate) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/candidates');
+                xhr.setRequestHeader('accept', 'application/json');
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.addEventListener('readystatechange', function () {
+                    if( xhr.readyState === 4 && xhr.status === 200 ) {
+                        var obj = JSON.parse(xhr.responseText);
+                        console.log(obj);
+                    }
+                });
+                xhr.send(JSON.stringify(candidate));
+            }
+
+        });
+
+        function makeAjaxCall(url, callback){
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.setRequestHeader('accept', 'application/json');
+            xhr.addEventListener('readystatechange', function () {
+                if( xhr.readyState === 4 && xhr.status === 200 ) {
+                    console.log(xhr.responseText);
+                    var obj = JSON.parse(xhr.responseText);
+                    callback(obj);
+                }
+            });
+            xhr.send();
+        }
+    </script>
+</head>
+<body>
+    <h3>I will populate json data here using an AJAX call ... </h3>
+    <div class="container">
+        <div>
+            <button id="btn_candidates">Get Candidates Information</button>
+        </div>
+        <div id="candidates">
+
+        </div>
+    </div>
+
+    <div class="container">
+        <form name="create_candidate">
+            <input type="text" name="name" placeholder="name"/>
+            <input type="text" name="email" placeholder="email"/>
+            <input type="text" name="city" placeholder="city"/>
+            <input type="submit" value="Create Candidate"/>
+        </form>
+        <div id="candidates">
+
+        </div>
+    </div>
+
+    <div class="container">
+        <input type="text" name="name" placeholder="search by name"/>
+        <div>
+            <button id="btn_search">Get Candidate Information</button>
+        </div>
+        <div id="candidates">
+
+        </div>
+    </div>
+
+</body>
+</html>
